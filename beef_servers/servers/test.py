@@ -11,4 +11,7 @@ if(__name__ =="__main__"):
     except Exception as err:
         print("Stop unexceptedly - {0}".format(err));
     finally:
-        server.Stop();
+        server.Close();
+        print("Stoped");
+        pass;
+       
