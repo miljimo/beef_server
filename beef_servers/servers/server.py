@@ -14,6 +14,45 @@ class SignalHandler(object):
         super().__init__();
 
 
+class Client(object):
+
+    def __init__(self,socket , address):
+        if(isinstance(self.__Socket, socket.Socket) != True):
+            raise TypeError("Expecting a python native socket.Socket object");
+        self.__Socket  = socket;
+        self.__Address =  address;
+
+        
+
+    
+        
+    @property
+    def Socket(self):
+        return self.__Socket;
+
+    def Close(self):
+        if(self.Socket != None):
+            self.Socket.close();
+
+
+    def Read(self):
+        data  =  None;
+        if(self.Socket != None):
+            data = self.Socket.recv(DEFAULT_MGS_LENGTH, True);
+        return data;
+
+    def Write(self, buffer):
+        if(self.Socket != None):
+            self.Socket.send(buffer);
+
+
+
+class Handler(object):
+
+
+    def __init__(self, client):
+        self
+
 
 class DaemonServer(object):
 
@@ -123,15 +162,16 @@ class DaemonServer(object):
             try:
                 print("Waiting for connections: ");
                 self.__Socket.listen(5);
-                client, address  = self.__Socket.accept(); 
+                socket, address  = self.__Socket.accept(); 
 
-                print(client, address);
+                print(socket, address);
                 print("**********************")
-                self.Clients.append(client);
-                name =  client.getpeername();
-                print("Number of Connections = {0}".format(name));
                
-                newConnetionThread  =  Thread(target= self.OnNewConnection, args=(address, client));
+                
+                print("Connected = {0}".format(address));
+                client  = Client(socket, address);
+                self.Clients.append(client);
+                newConnetionThread  =  Thread(target= self.OnNewConnection, args=(client));
                 newConnetionThread.daemon  = False;
                 newConnetionThread.start();
                 self.ThreadPoles.append(newConnetionThread);
@@ -148,13 +188,13 @@ class DaemonServer(object):
 
     def OnNewConnection(self, address, client):
         if(client != None):
-            client.send("");
             while(True):
-                data  =   client.recv(DEFAULT_MGS_LENGTH, True);
+                data  =   client.Read(DEFAULT_MGS_LENGTH, True);
                 if(len(data) > 0):
                     print(data);
+                    
                 else:
-                    client.close();
+                    client.Close();
 
     def Stop(self):
         self.__StartLocker.acquire();
