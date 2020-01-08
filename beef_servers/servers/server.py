@@ -1,22 +1,13 @@
-"""
- Using the comsumer and producer pattern
- to implement a file update server
- that will monitor which file is updated and serve
- it the client application.
- The is a continues live connection
- communication this allow the server
- to send update asynchrously to and from the client and the server
-"""
 
 import socket;
 from threading import Thread, Lock;
 import time;
 import os;
-import signal; # Handle system signals
-from events import BaseObject , EventHandler;
-from filewatchers import FileWatcher;
+from   ..events import BaseObject , EventHandler;
+
 
 DEFAULT_PORT_ADDRESS  = 36061;
+DEFAULT_MGS_LENGTH  = 1024;
 
 class SignalHandler(object):
     def __init__(self):
@@ -156,11 +147,14 @@ class DaemonServer(object):
                 pass;
 
     def OnNewConnection(self, address, client):
-        print("New Connection Started");
         if(client != None):
+            client.send("");
             while(True):
-                data  =   client.recv(4096);
-                print(data);
+                data  =   client.recv(DEFAULT_MGS_LENGTH, True);
+                if(len(data) > 0):
+                    print(data);
+                else:
+                    client.close();
 
     def Stop(self):
         self.__StartLocker.acquire();
@@ -186,16 +180,6 @@ class DaemonServer(object):
 
 
 
-if(__name__ =="__main__"):
-    server = DaemonServer();
-    server.Start();
-    try:
-        while(server.IsRunning):
-            pass;
-        server.Stop();
-    except Exception as err:
-        print("Stop unexceptedly - {0}".format(err));
-    finally:
-        server.Stop();
+
         
 
